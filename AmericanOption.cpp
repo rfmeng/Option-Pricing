@@ -35,7 +35,7 @@ std::vector<double> AmericanOption::Regression(std::vector<std::vector<double>>&
 	double detATA = ATA[0][0] * (ATA[1][1] * ATA[2][2] - ATA[1][2] * ATA[2][1])\
 				  - ATA[1][0] * (ATA[0][1] * ATA[2][2] - ATA[0][2] * ATA[2][1])\
 				  + ATA[2][0] * (ATA[0][1] * ATA[1][2] - ATA[0][2] * ATA[1][1]);
-	//std::cout << "det:" << detATA << std::endl;
+	
 	double invATA[3][3] =	// without dividing detATA
 	{ 
 		{
@@ -63,7 +63,6 @@ std::vector<double> AmericanOption::Regression(std::vector<std::vector<double>>&
 		}
 		result[i] /= detATA;
 	}
-	//std::cout << "1: " << detATA << std::endl;
 	return result;
 }
 
@@ -165,7 +164,7 @@ double AmericanOption::MC(double U, unint S_N, unint T_N) const
 	{
 		m.push_back(std::vector<double>(T_N, U));
 	}
-	// forward
+
 	auto forward = [&](std::vector<std::vector<double>>& m)->void
 	{
 		double mean = (b - sig * sig / 2) * dT;
@@ -210,12 +209,6 @@ double AmericanOption::MC(double U, unint S_N, unint T_N) const
 				for (unint i = 0;i < S_N;i++)
 				{
 					double EV = Payoff(m[i][j]);
-
-					/*if (j == 47 && i == 833)
-					{
-						std::cout<<"mark: " << m[i][j] << std::endl;
-					}*/
-
 					if (EV>0)	// potential early exercising
 					{
 						double EHV = coef[0] + coef[1] * m[i][j] + coef[2] * m[i][j] * m[i][j];
@@ -227,26 +220,18 @@ double AmericanOption::MC(double U, unint S_N, unint T_N) const
 					}
 
 				}
-				
-				//if (j <=300) { std::cout <<"A: "<<j<<" "<< coef[0] << "," << coef[1] << "," << coef[2] << ","<<std::endl; }
-
 			}
 		}
 	};
 
 	forward(m);
-	//for (auto i : m[833]) { std::cout << "P: " << i << std::endl; }
 	backward(m);
 
 	double result = 0;
 	for (int i = 0;i < S_N;i++)
 	{
-		//result = result * i / ((double)i + 1) + m[i][0] / ((double)i + 1);
 		result += m[i][0];
-		//std::cout <<"2:"<<i<<" "<< result << std::endl;
 	}
-	//for (unint i = 0;i < S_N;i++) { std::cout <<"1:" << i << " " << m[i][0] << std::endl; }
-	//for (unint i = 0;i < T_N;i++) { std::cout << "1:" << i << " " << m[833][i] << std::endl; }
 	return result/(double)S_N;
 }
 
